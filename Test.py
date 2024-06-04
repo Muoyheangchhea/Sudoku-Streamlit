@@ -72,6 +72,12 @@ def save_game(board):
             file.write(' '.join(map(str, row)) + '\n')
 
 
+def load_game():
+    with open('saved_game.txt', 'r') as file:
+        board = [line.strip().split() for line in file]
+    return board
+
+
 def add_css():
     st.markdown(
         """
@@ -160,15 +166,15 @@ def display_input_boxes(board):
 
 
 initial_board = [
-    [0, 0, 0, 2, 6, 0, 7, 0, 1],
-    [6, 8, 0, 0, 7, 0, 0, 9, 0],
-    [1, 9, 0, 0, 0, 4, 5, 0, 0],
-    [8, 2, 0, 1, 0, 0, 0, 4, 0],
-    [0, 0, 4, 6, 0, 2, 9, 0, 0],
-    [0, 5, 0, 0, 0, 3, 0, 2, 8],
-    [0, 0, 9, 3, 0, 0, 0, 7, 4],
-    [0, 4, 0, 0, 5, 0, 0, 3, 6],
-    [7, 0, 3, 0, 1, 8, 0, 0, 0]
+    [0, 0, 0, 6, 0, 0, 4, 0, 0],
+    [7, 0, 0, 0, 0, 3, 6, 0, 0],
+    [0, 0, 0, 0, 9, 1, 0, 8, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 5, 0, 1, 8, 0, 0, 0, 3],
+    [0, 0, 0, 3, 0, 6, 0, 4, 5],
+    [0, 4, 0, 2, 0, 0, 0, 6, 0],
+    [9, 0, 3, 0, 0, 0, 0, 0, 0],
+    [0, 2, 0, 0, 0, 0, 1, 0, 0]
 ]
 
 
@@ -214,6 +220,12 @@ def main():
         save_game(board_input)
         st.sidebar.success("Game saved successfully.")
 
+    if st.sidebar.button("Load Game"):
+        loaded_board = load_game()
+        add_css()
+        sudoku_html = render_board_with_borders(loaded_board)
+        st.sidebar.markdown(sudoku_html, unsafe_allow_html=True)
+
     add_css()
     board_display.markdown(render_board_with_borders(board_input), unsafe_allow_html=True)
 
@@ -224,9 +236,6 @@ def main():
 
     if not st.session_state.running:
         timer_display.subheader(f'Elapsed time: {st.session_state.elapsed_time:.0f} seconds')
-
-    add_css()
-    board_display.markdown(render_board_with_borders(board_input), unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
