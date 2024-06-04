@@ -1,20 +1,8 @@
 import streamlit as st
 import copy
+import time
 
 st.set_page_config(page_title="Play Sudoku", page_icon="🎮")
-
-
-initial_board = [
-    [0, 0, 0, 2, 6, 0, 7, 0, 1],
-    [6, 8, 0, 0, 7, 0, 0, 9, 0],
-    [1, 9, 0, 0, 0, 4, 5, 0, 0],
-    [8, 2, 0, 1, 0, 0, 0, 4, 0],
-    [0, 0, 4, 6, 0, 2, 9, 0, 0],
-    [0, 5, 0, 0, 0, 3, 0, 2, 8],
-    [0, 0, 9, 3, 0, 0, 0, 7, 4],
-    [0, 4, 0, 0, 5, 0, 0, 3, 6],
-    [7, 0, 3, 0, 1, 8, 0, 0, 0]
-]
 
 
 def is_valid_sudoku(board):
@@ -125,51 +113,118 @@ def render_board_with_borders(board):
     return html
 
 
-def main():
-    st.title("Sudoku Game")
+if 'running' not in st.session_state:
+    st.session_state.running = False
+if 'start_time' not in st.session_state:
+    st.session_state.start_time = None
+if 'elapsed_time' not in st.session_state:
+    st.session_state.elapsed_time = 0
 
-    board_input = copy.deepcopy(initial_board)
-    move_history = []
 
-    board_display = st.empty()
+def start_timer():
+    if st.session_state.start_time is None:  # First start
+        st.session_state.start_time = time.time()
+    else:  # Resume
+        st.session_state.start_time = time.time() - st.session_state.elapsed_time
+    st.session_state.running = True
 
+
+def stop_timer():
+    if st.session_state.running:
+        st.session_state.elapsed_time = time.time() - st.session_state.start_time
+    st.session_state.running = False
+
+
+def reset_timer():
+    st.session_state.elapsed_time = 0
+    st.session_state.start_time = None
+    st.session_state.running = False
+
+
+def display_input_boxes(board):
     for i in range(9):
-        cols = st.columns(9, gap= 'small')
+        cols = st.columns(9, gap='small')
         for j in range(9):
-            value = board_input[i][j]
+            value = board[i][j]
             if initial_board[i][j] != 0:
                 cols[j].markdown(f"<div style='display:flex;align-items:center;justify-content:center;height:38px;'>"
                                  f"{value}</div>", unsafe_allow_html=True)
             else:
                 new_value = cols[j].text_input(f"Cell {i+1},{j+1}:small_red_triangle_down:", str(value) if value != 0 else "", key=f"{i},{j}", max_chars=1)
                 if new_value.isdigit() and 1 <= int(new_value) <= 9:
-                    board_input[i][j] = int(new_value)
-                    move_history.append((i, j))
+                    board[i][j] = int(new_value)
                 elif new_value.isdigit() and int(new_value) <= 0:
                     st.warning("Value must be greater than 0.")
                 elif new_value == "":
-                    board_input[i][j] = 0
-                    if (i, j) in move_history:
-                        move_history.remove((i, j))
+                    board[i][j] = 0
+
+
+initial_board = [
+    [0, 0, 0, 2, 6, 0, 7, 0, 1],
+    [6, 8, 0, 0, 7, 0, 0, 9, 0],
+    [1, 9, 0, 0, 0, 4, 5, 0, 0],
+    [8, 2, 0, 1, 0, 0, 0, 4, 0],
+    [0, 0, 4, 6, 0, 2, 9, 0, 0],
+    [0, 5, 0, 0, 0, 3, 0, 2, 8],
+    [0, 0, 9, 3, 0, 0, 0, 7, 4],
+    [0, 4, 0, 0, 5, 0, 0, 3, 6],
+    [7, 0, 3, 0, 1, 8, 0, 0, 0]
+]
+
+
+def main():
+    st.title("Sudoku Game")
+
+    board_input = copy.deepcopy(initial_board)
+
+    st.write("Fill in the blank spaces correctly to solve it.")
+
+    board_display = st.empty()
+
+    display_input_boxes(board_input)
 
     st.sidebar.subheader("Actions")
-    if st.sidebar.button("Save Game"):
-        save_game(board_input)
-        st.sidebar.success("Game saved successfully.")
+    timer_display = st.sidebar.empty()
 
-    if st.sidebar.button("Reset Board"):
-        board_input = copy.deepcopy(initial_board)
-        move_history = []
+    if st.sidebar.button("Start Timer") and not st.session_state.running:
+        start_timer()
+
+    if st.sidebar.button("Stop Timer") and st.session_state.running:
+        stop_timer()
 
     if st.sidebar.button("Submit"):
         if is_valid_sudoku(board_input):
             st.sidebar.success("Congratulations, you have solved the Sudoku.")
+            if st.session_state.running:
+                stop_timer()
         else:
             st.sidebar.warning("Sorry, the solution you provided was incorrect.")
 
     if st.sidebar.button("Solve for me"):
         if solve_sudoku(board_input, 0, 0):
             st.sidebar.success("Sudoku is now solved.")
+            if st.session_state.running:
+                stop_timer()
+
+    if st.sidebar.button("Reset Board"):
+        reset_timer()
+        board_input = copy.deepcopy(initial_board)
+
+    if st.sidebar.button("Save Game"):
+        save_game(board_input)
+        st.sidebar.success("Game saved successfully.")
+
+    add_css()
+    board_display.markdown(render_board_with_borders(board_input), unsafe_allow_html=True)
+
+    while st.session_state.running:
+        elapsed_time = time.time() - st.session_state.start_time
+        timer_display.subheader(f'Elapsed time: {elapsed_time:.0f} seconds')
+        time.sleep(1)
+
+    if not st.session_state.running:
+        timer_display.subheader(f'Elapsed time: {st.session_state.elapsed_time:.0f} seconds')
+
     add_css()
     board_display.markdown(render_board_with_borders(board_input), unsafe_allow_html=True)
 
