@@ -6,17 +6,16 @@ st.set_page_config(page_title="Play Sudoku: Practice Mode", page_icon="🎮")
 
 
 initial_board = [
-    [0, 0, 0, 6, 0, 0, 4, 0, 0],
-    [7, 0, 0, 0, 0, 3, 6, 0, 0],
-    [0, 0, 0, 0, 9, 1, 0, 8, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 5, 0, 1, 8, 0, 0, 0, 3],
-    [0, 0, 0, 3, 0, 6, 0, 4, 5],
-    [0, 4, 0, 2, 0, 0, 0, 6, 0],
-    [9, 0, 3, 0, 0, 0, 0, 0, 0],
-    [0, 2, 0, 0, 0, 0, 1, 0, 0]
+    [0, 0, 0, 2, 6, 0, 7, 0, 1],
+    [6, 8, 0, 0, 7, 0, 0, 9, 0],
+    [1, 9, 0, 0, 0, 4, 5, 0, 0],
+    [8, 2, 0, 1, 0, 0, 0, 4, 0],
+    [0, 0, 4, 6, 0, 2, 9, 0, 0],
+    [0, 5, 0, 0, 0, 3, 0, 2, 8],
+    [0, 0, 9, 3, 0, 0, 0, 7, 4],
+    [0, 4, 0, 0, 5, 0, 0, 3, 6],
+    [7, 0, 3, 0, 1, 8, 0, 0, 0]
 ]
-
 
 def is_valid_sudoku(board):
     rows = [set() for _ in range(9)]
@@ -185,6 +184,7 @@ def main():
     4. Save Daft is used to save your game right away and Load Draft is used to load the saved draft you have already saved to the board.
     5. After finish solving, submit your answer to test. If it shows "Congratulation" bar is mean all your answers are correct and if not, it will show "Warning" bar.
     6. You can reset the game whenever you want by using "Reset".
+    7. It won't be submitted unless you fill all of the answers.
 '''
     )
 
@@ -237,7 +237,7 @@ def main():
     if st.sidebar.button("Submit"):
         if is_valid_sudoku(board_input):
             st.sidebar.success("Congratulations, you have solved the Sudoku.✅")
-            st.sidebar.success(f"You have spent {timer_display}")
+            st.sidebar.success(f"You have spent: {st.session_state.elapsed_time:.0f} seconds")
             if st.session_state.running:
                 stop_timer()
         else:
