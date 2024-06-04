@@ -27,46 +27,25 @@ def is_valid_sudoku(board):
             num = board[i][j]
             if num == 0:
                 return False
-
             subgrid_index = (i // 3) * 3 + j // 3
-
             if num in rows[i] or num in cols[j] or num in sub_grids[subgrid_index]:
                 return False
-
             rows[i].add(num)
             cols[j].add(num)
             sub_grids[subgrid_index].add(num)
-
     return True
+
 
 def is_safe(grid, row, col, num):
     for x in range(9):
         if grid[row][x] == num or grid[x][col] == num:
             return False
-
     start_row, start_col = row - row % 3, col - col % 3
     for i in range(3):
         for j in range(3):
             if grid[i + start_row][j + start_col] == num:
                 return False
     return True
-
-def solve_sudoku(grid, row=0, col=0):
-    if row == 8 and col == 9:
-        return True
-    if col == 9:
-        row += 1
-        col = 0
-    if grid[row][col] != 0:
-        return solve_sudoku(grid, row, col + 1)
-    
-    for num in range(1, 10):
-        if is_safe(grid, row, col, num):
-            grid[row][col] = num
-            if solve_sudoku(grid, row, col + 1):
-                return True
-        grid[row][col] = 0
-    return False
 
 def save_game(board):
     with open('saved_game.txt', 'w') as file:
